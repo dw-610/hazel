@@ -6,6 +6,7 @@ This module contains tools for reading data useful data from files.
 # imports
 
 import os
+import re
 from typing import TextIO
 
 # ------------------------------------------------------------------------------
@@ -31,7 +32,8 @@ def get_authors(file: TextIO) -> list:
             split_names = names_only.split(' and ')
             authors = []
             for name in split_names:
-                last, first = name.split(', ')
+                clean_name = re.sub(r'[^\w\s ,]', '', name, flags=re.UNICODE)
+                last, first = clean_name.split(', ')
                 authors.append(f'{first} {last}')
     file.seek(0) # reset the pointer
     return authors
@@ -286,7 +288,9 @@ def create_markdown(save_dir: str, data_dictionary: dict) -> None:
 
         f.write('## Authors\n\n')
         for author in authors:
-            f.write(f'- [[{author}]]\n')
+            names = author.split(' ')
+            scored = '_'.join(names)
+            f.write(f'- [[PPL_{scored}|{author}]]\n')
         f.write('\n')
 
         f.write('## Summary\n\n')
@@ -331,12 +335,17 @@ def split_bibs(file_path: str) -> None:
 
 if __name__ == '__main__':
     
-    savedir = 'notes/'    
+    bib = 'local/gardenfors.bib'
+    savedir = 'local/'   
 
-    for file in os.listdir('bibs'):
-        filepath = f'bibs/{file}'
-        data = extract_data(filepath)
-        create_markdown(savedir, data)
+    data = extract_data(bib)
+
+    create_markdown(savedir, data) 
+
+    # for file in os.listdir('bibs'):
+    #     filepath = f'bibs/{file}'
+    #     data = extract_data(filepath)
+    #     create_markdown(savedir, data)
 
     # for key, value in data.items():
     #     print(f'{key}: {value}')
